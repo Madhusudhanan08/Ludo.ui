@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The System</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a28;
+    --border: #2a2a40;
+    --accent: #c9a227;
+    --accent2: #e8c547;
+    --red: #e84040;
+    --blue: #4080e8;
+    --green: #40c870;
+    --yellow: #e8c040;
+    --orange: #e87840;
+    --purple: #9040e8;
+    --text: #e8e8f0;
+    --muted: #6868a0;
+    --domain: #c9a22740;
+    --domain-border: #c9a227;
+    --glow: 0 0 20px #c9a22760;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, #1a1020 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, #0a1520 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #12121a 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+
+  .logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 16px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+
+  .room-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* ── PLAYERS BAR ── */
+  .players-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .players-bar::-webkit-scrollbar { display: none; }
+
+  .player-card {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .player-card.active {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .player-card.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+
+  .player-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-stats {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .star-count {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .xp-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── BOARD ── */
+  .board-container {
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    grid-template-rows: repeat(13, 1fr);
+    width: min(100vw - 32px, 380px);
+    height: min(100vw - 32px, 380px);
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 40px #00000080;
+  }
+
+  .tile {
+    border: 0.5px solid #1a1a2840;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 7px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    cursor: default;
+  }
+
+  .tile.normal { background: var(--surface2); }
+  .tile.safe { background: #1a2a1a; border-color: #2a4a2a; }
+  .tile.domain {
+    background: var(--domain);
+    border-color: var(--domain-border);
+    box-shadow: inset 0 0 8px #c9a22730;
+  }
+  .tile.domain::after {
+    content: '◆';
+    color: var(--accent);
+    font-size: 8px;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    opacity: 0.7;
+  }
+
+  /* Home zones */
+  .home-red { background: #2a0a0a; border-color: #4a1a1a; }
+  .home-blue { background: #0a0a2a; border-color: #1a1a4a; }
+  .home-green { background: #0a2a0a; border-color: #1a4a1a; }
+  .home-yellow { background: #2a2a0a; border-color: #4a4a1a; }
+  .home-orange { background: #2a1a0a; border-color: #4a2a1a; }
+  .home-purple { background: #1a0a2a; border-color: #2a1a4a; }
+
+  /* Piece */
+  .piece {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6px;
+    font-weight: 900;
+    color: #000;
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 2px 6px #00000060;
+  }
+
+  .piece:hover { transform: scale(1.2); }
+  .piece.movable {
+    animation: pulse 1s infinite;
+    cursor: pointer;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+    50% { transform: scale(1.1); box-shadow: 0 0 0 4px transparent; }
+  }
+
+  .piece-red { background: var(--red); }
+  .piece-blue { background: var(--blue); }
+  .piece-green { background: var(--green); }
+  .piece-yellow { background: var(--yellow); }
+  .piece-orange { background: var(--orange); }
+  .piece-purple { background: var(--purple); }
+
+  /* ── GAME CENTER ── */
+  .game-center {
+    padding: 0 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── TURN INFO ── */
+  .turn-info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .turn-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .turn-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .turn-name {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Cinzel Decorative', serif;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── TIMER ── */
+  .timer-ring {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
+  .timer-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+
+  .timer-ring circle {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .timer-bg { stroke: var(--border); }
+  .timer-fg {
+    stroke: var(--accent);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  .timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* ── DICE ── */
+  .dice-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .dice-btn {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--surface2) 0%, #1e1e30 100%);
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--glow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dice-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px #c9a22780;
+  }
+
+  .dice-btn:active { transform: scale(0.95); }
+
+  .dice-btn.rolling {
+    animation: roll 0.5s ease;
+  }
+
+  @keyframes roll {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(90deg) scale(1.1); }
+    50% { transform: rotate(180deg) scale(0.9); }
+    75% { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .dice-result {
+    font-size: 48px;
+    font-weight: 900;
+    font-family: 'Cinzel Decorative', serif;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .dice-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ── ACTION BUTTONS ── */
+  .action-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+  }
+
+  .action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .action-btn.primary {
+    background: linear-gradient(135deg, #c9a227 0%, #e8c547 100%);
+    color: #000;
+    border-color: transparent;
+    font-weight: 900;
+  }
+
+  .action-btn.primary:hover {
+    box-shadow: var(--glow);
+    transform: translateY(-1px);
+    color: #000;
+  }
+
+  .action-btn.danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* ── COMBAT POPUP ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: #00000090;
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .popup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 20px 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    transform: translateY(40px);
+    transition: transform 0.3s ease;
+  }
+
+  .overlay.visible .popup {
+    transform: translateY(0);
+  }
+
+  .popup-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .popup-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .target-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .target-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .target-item:hover, .target-item.selected {
+    border-color: var(--red);
+    background: #2a0a0a;
+  }
+
+  .target-role {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .target-xp {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── EVENT LOG ── */
+  .event-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 16px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .log-title {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .log-entry {
+    font-size: 12px;
+    color: var(--text);
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .log-entry .log-icon { margin-right: 6px; }
+
+  /* ── LOBBY SCREEN ── */
+  .lobby-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .lobby-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+    text-shadow: none;
+  }
+
+  .lobby-sub {
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .lobby-players {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .lobby-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .lobby-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .lobby-player-name {
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .lobby-player-level {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .waiting-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin: 0 2px;
+    animation: dot-pulse 1.4s infinite;
+  }
+
+  .waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── WIN SCREEN ── */
+  .win-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .win-crown {
+    font-size: 72px;
+    animation: crown-bounce 1s ease infinite alternate;
+  }
+
+  @keyframes crown-bounce {
+    from { transform: translateY(0) rotate(-5deg); }
+    to { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  .win-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .win-standings {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .standing-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+  }
+
+  .standing-medal { font-size: 20px; min-width: 28px; }
+  .standing-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .standing-reward { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+  /* ── DOMAIN EVENT FLASH ── */
+  .domain-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    padding: 20px 32px;
+    text-align: center;
+    z-index: 300;
+    box-shadow: var(--glow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .domain-flash.show {
+    opacity: 1;
+    animation: flash-in 0.3s ease;
+  }
+
+  @keyframes flash-in {
+    from { transform: translate(-50%, -50%) scale(0.8); }
+    to { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  .domain-flash-icon { font-size: 36px; }
+  .domain-flash-text {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 14px;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── CONSTANTS ──
+const COLORS = ['red','blue','green','yellow','orange','purple'];
+const COLOR_NAMES = ['🔴','🔵','🟢','🟡','🟠','🟣'];
+const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const BOARD_SIZE = 60;
+const DOMAIN_TILES = new Set([8,16,24,32,40,48,54,58]);
+const SAFE_TILES = new Set([0,13,26,39,52]);
+const MEDALS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+const REWARDS = ['50xp + Dungeon 🏰','50xp','30xp','25xp','10xp','10xp'];
+
+// ── MOCK GAME STATE (replace with real backend calls) ──
+const MOCK_STATE = {
+  screen: 'game', // lobby | game | win
+  roomId: 'BC8B78',
+  currentTurn: 0,
+  lastRoll: null,
+  players: [
+    {
+      id: 1, name: 'watashivaLdesu', color: 'red',
+      stars: 6, xp: 80, level: 2, turnTime: 20,
+      pieces: [
+        { id: 'a1', role: 'A', position: 12 },
+        { id: 't1', role: 'T', position: -1 },
+        { id: 'c1', role: 'C', position: 5  },
+        { id: 'c2', role: 'C', position: -1 },
+      ]
+    },
+    {
+      id: 2, name: 'Bala ECE', color: 'blue',
+      stars: 8, xp: 20, level: 1, turnTime: 15,
+      pieces: [
+        { id: 'a2', role: 'A', position: 18 },
+        { id: 't2', role: 'T', position: 3  },
+        { id: 'c3', role: 'C', position: -1 },
+        { id: 'c4', role: 'C', position: -1 },
+      ]
+    },
+  ],
+  standings: [],
+  log: [
+    { icon: '⚔️', text: 'Game started!' },
+    { icon: '🎲', text: 'watashivaLdesu rolled 6' },
+    { icon: '♟️', text: 'Attacker moved to tile 12' },
+  ]
+};
+
+// ── TIMER COMPONENT ──
+function Timer({ seconds, total }) {
+  const r = 24;
+  const circ = 2 * Math.PI * r;
+  const pct = seconds / total;
+  const offset = circ * (1 - pct);
+  const color = seconds <= 5 ? '#e84040' : '#c9a227';
+  return (
+    <div className="timer-ring">
+      <svg viewBox="0 0 56 56">
+        <circle className="timer-bg" cx="28" cy="28" r={r} />
+        <circle
+          className="timer-fg"
+          cx="28" cy="28" r={r}
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          stroke={color}
+        />
+      </svg>
+      <div className="timer-text" style={{ color }}>{seconds}</div>
+    </div>
+  );
+}
+
+// ── DICE COMPONENT ──
+function Dice({ value, rolling, onRoll, canRoll }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <div
+        className={`dice-btn ${rolling ? 'rolling' : ''}`}
+        onClick={canRoll ? onRoll : undefined}
+        style={{ opacity: canRoll ? 1 : 0.4, cursor: canRoll ? 'pointer' : 'not-allowed' }}
+      >
+        {value ? DICE_FACES[value - 1] : '🎲'}
+      </div>
+      <div className="dice-label">{canRoll ? 'Tap to roll' : 'Wait...'}</div>
+    </div>
+  );
+}
+
+// ── BOARD TILE ──
+function Tile({ type, pieces, onPieceClick, movablePieceIds }) {
+  return (
+    <div className={`tile ${type}`}>
+      {pieces && pieces.map(p => (
+        <div
+          key={p.id}
+          className={`piece piece-${p.playerColor} ${movablePieceIds.has(p.id) ? 'movable' : ''}`}
+          onClick={() => movablePieceIds.has(p.id) && onPieceClick(p.id)}
+          title={`${p.playerName} - ${p.role}`}
+        >
+          {p.role}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── MINI BOARD (simplified visual) ──
+function MiniBoard({ players, movablePieceIds, onPieceClick }) {
+  // Build position map
+  const posMap = {};
+  players.forEach(player => {
+    player.pieces.forEach(piece => {
+      if (piece.position >= 0) {
+        const pos = piece.position;
+        if (!posMap[pos]) posMap[pos] = [];
+        posMap[pos].push({ ...piece, playerColor: player.color, playerName: player.name });
+      }
+    });
+  });
+
+  // Simplified 13x13 board representation
+  const getTileType = (row, col) => {
+    // Home zones (corners)
+    if (row < 5 && col < 5) return 'home-red';
+    if (row < 5 && col > 7) return 'home-blue';
+    if (row > 7 && col < 5) return 'home-green';
+    if (row > 7 && col > 7) return 'home-yellow';
+    // Center
+    if (row >= 5 && row <= 7 && col >= 5 && col <= 7) return 'domain';
+    // Paths
+    const tileNum = (row * 13 + col) % BOARD_SIZE;
+    if (DOMAIN_TILES.has(tileNum)) return 'domain';
+    if (SAFE_TILES.has(tileNum)) return 'safe';
+    return 'normal';
+  };
+
+  const tiles = [];
+  for (let r = 0; r < 13; r++) {
+    for (let c = 0; c < 13; c++) {
+      const tileNum = (r * 13 + c) % BOARD_SIZE;
+      const type = getTileType(r, c);
+      const piecesHere = posMap[tileNum] || [];
+      tiles.push(
+        <Tile
+          key={`${r}-${c}`}
+          type={type}
+          pieces={piecesHere.length > 0 ? piecesHere : null}
+          onPieceClick={onPieceClick}
+          movablePieceIds={movablePieceIds}
+        />
+      );
+    }
+  }
+
+  return (
+    <div className="board-container">
+      <div className="board">{tiles}</div>
+    </div>
+  );
+}
+
+// ── COMBAT POPUP ──
+function CombatPopup({ visible, targets, onSelect, onClose }) {
+  return (
+    <div className={`overlay ${visible ? 'visible' : ''}`}>
+      <div className="popup">
+        <div className="popup-title">⚔️ Cleave Active!</div>
+        <div className="popup-sub">CHOOSE YOUR TARGET</div>
+        <div className="target-list">
+          {targets.map((t, i) => (
+            <div key={i} className="target-item" onClick={() => onSelect(t)}>
+              <div>
+                <div className="target-role">{t.playerName} — {t.role}</div>
+              </div>
+              <div className="target-xp">+{t.xp}xp</div>
+            </div>
+          ))}
+        </div>
+        <button className="action-btn" onClick={onClose}>Skip Cleave</button>
+      </div>
+    </div>
+  );
+}
+
+// ── LOBBY SCREEN ──
+function LobbyScreen({ roomId, players }) {
+  return (
+    <div className="lobby-screen">
+      <div>
+        <div className="lobby-title">THE SYSTEM</div>
+        <div className="lobby-sub" style={{ marginTop: 8 }}>Dungeon awaits</div>
+      </div>
+      <div className="room-badge" style={{ fontSize: 14, padding: '8px 20px' }}>
+        Room: {roomId}
+      </div>
+      <div className="lobby-players">
+        {players.map((p, i) => (
+          <div key={p.id} className="lobby-player-row">
+            <div className="lobby-color-dot" style={{ background: `var(--${p.color})` }} />
+            <div className="lobby-player-name">{p.name}</div>
+            <div className="lobby-player-level">LVL {p.level}</div>
+          </div>
+        ))}
+        {players.length < 6 && (
+          <div style={{ textAlign: 'center', padding: '12px', color: 'var(--muted)' }}>
+            <div className="waiting-dots">
+              <span/><span/><span/>
+            </div>
+            <div style={{ fontSize: 11, marginTop: 6, letterSpacing: 2 }}>
+              WAITING FOR PLAYERS
+            </div>
+          </div>
+        )}
+      </div>
+      {players.length >= 2 && (
+        <button className="action-btn primary" style={{ width: '100%', maxWidth: 320, padding: 16, fontSize: 16 }}>
+          ⚔️ START DUNGEON
+        </button>
+      )}
+      <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: 1 }}>
+        Share room code with friends
+      </div>
+    </div>
+  );
+}
+
+// ── WIN SCREEN ──
+function WinScreen({ standings, winner }) {
+  return (
+    <div className="win-screen">
+      <div className="win-crown">👑</div>
+      <div className="win-title">{winner} Captured The Dungeon!</div>
+      <div className="win-standings">
+        {standings.map((p, i) => (
+          <div key={p.id} className="standing-row">
+            <div className="standing-medal">{MEDALS[i]}</div>
+            <div className="standing-name">{p.name}</div>
+            <div className="standing-reward">{REWARDS[i] || '10xp'}</div>
+          </div>
+        ))}
+      </div>
+      <button className="action-btn primary" style={{ width: '100%', maxWidth: 320, padding: 16, fontSize: 16 }}>
+        🏰 Name Your Dungeon
+      </button>
+    </div>
+  );
+}
+
+// ── MAIN APP ──
+function App() {
+  const [state, setState] = useState(MOCK_STATE);
+  const [rolling, setRolling] = useState(false);
+  const [timer, setTimer] = useState(15);
+  const [movablePieceIds, setMovablePieceIds] = useState(new Set());
+  const [combatVisible, setCombatVisible] = useState(false);
+  const [combatTargets, setCombatTargets] = useState([]);
+  const [domainFlash, setDomainFlash] = useState(null);
+  const timerRef = useRef(null);
+
+  const tg = window.Telegram?.WebApp;
+  useEffect(() => {
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor('#0a0a0f');
+    }
+  }, []);
+
+  const currentPlayer = state.players[state.currentTurn];
+  const isMyTurn = true; // In real app: tg?.initDataUnsafe?.user?.id === currentPlayer?.id
+
+  // Timer
+  useEffect(() => {
+    if (state.screen !== 'game') return;
+    const total = currentPlayer?.turnTime || 15;
+    setTimer(total);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setTimer(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current);
+          handleAutoRoll();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [state.currentTurn, state.screen]);
+
+  const handleAutoRoll = () => {
+    if (!rolling) handleRoll();
+  };
+
+  const handleRoll = useCallback(() => {
+    if (rolling || !isMyTurn) return;
+    setRolling(true);
+    clearInterval(timerRef.current);
+
+    setTimeout(() => {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      const movable = new Set();
+
+      currentPlayer.pieces.forEach(p => {
+        if (p.position === -1 && (roll === 1 || roll === 6)) movable.add(p.id);
+        else if (p.position >= 0) movable.add(p.id);
+      });
+
+      setState(s => ({
+        ...s,
+        lastRoll: roll,
+        log: [{ icon: '🎲', text: `${currentPlayer.name} rolled ${roll}!` }, ...s.log.slice(0, 9)]
+      }));
+
+      setMovablePieceIds(movable);
+      setRolling(false);
+
+      if (movable.size === 0) {
+        setTimeout(() => nextTurn(), 1200);
+      }
+    }, 600);
+  }, [rolling, isMyTurn, currentPlayer]);
+
+  const handlePieceClick = (pieceId) => {
+    if (!movablePieceIds.has(pieceId)) return;
+    const piece = currentPlayer.pieces.find(p => p.id === pieceId);
+    const roll = state.lastRoll;
+
+    setState(s => {
+      const players = s.players.map((player, idx) => {
+        if (idx !== s.currentTurn) return player;
+        const pieces = player.pieces.map(p => {
+          if (p.id !== pieceId) return p;
+          const newPos = p.position === -1 ? 0 : Math.min(p.position + roll, BOARD_SIZE);
+          return { ...p, position: newPos };
+        });
+        return { ...player, pieces };
+      });
+
+      const newPos = piece.position === -1 ? 0 : Math.min(piece.position + roll, BOARD_SIZE);
+      const isDomain = DOMAIN_TILES.has(newPos);
+      let log = [...s.log];
+
+      if (isDomain) {
+        log = [{ icon: '🔴', text: `${piece.role} entered a Domain! Power activated!` }, ...log.slice(0, 9)];
+        showDomainFlash(piece.role);
+      } else {
+        log = [{ icon: '♟️', text: `${piece.role} moved to tile ${newPos}` }, ...log.slice(0, 9)];
+      }
+
+      return { ...s, players, log };
+    });
+
+    setMovablePieceIds(new Set());
+    setTimeout(() => nextTurn(), 800);
+  };
+
+  const showDomainFlash = (role) => {
+    const msgs = {
+      'A': { icon: '💥', text: 'CLEAVE READY!' },
+      'T': { icon: '🛡️', text: 'TANK POWER!' },
+      'C': { icon: '🔴', text: 'DOMAIN — SAFE ZONE' },
+    };
+    setDomainFlash(msgs[role] || msgs['C']);
+    setTimeout(() => setDomainFlash(null), 2000);
+  };
+
+  const nextTurn = () => {
+    setState(s => ({
+      ...s,
+      currentTurn: (s.currentTurn + 1) % s.players.length,
+      lastRoll: null,
+    }));
+    setMovablePieceIds(new Set());
+  };
+
+  if (state.screen === 'lobby') {
+    return <LobbyScreen roomId={state.roomId} players={state.players} />;
+  }
+
+  if (state.screen === 'win') {
+    return <WinScreen standings={state.standings} winner={state.standings[0]?.name} />;
+  }
+
+  return (
+    <>
+      {/* Header */}
+      <div className="header">
+        <div className="logo">⚔ THE SYSTEM</div>
+        <div className="room-badge">{state.roomId}</div>
+      </div>
+
+      {/* Players Bar */}
+      <div className="players-bar">
+        {state.players.map((p, i) => (
+          <div key={p.id} className={`player-card ${i === state.currentTurn ? 'active' : ''}`}>
+            <div className="player-name" style={{ color: `var(--${p.color})` }}>
+              {COLOR_NAMES[i]} {p.name}
+            </div>
+            <div className="player-stats">
+              <span className="star-count">★ {p.stars}</span>
+              <span>·</span>
+              <span>{p.xp}xp</span>
+              <span>·</span>
+              <span>L{p.level}</span>
+            </div>
+            <div className="xp-bar">
+              <div className="xp-fill" style={{ width: `${(p.xp % 100)}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Board */}
+      <MiniBoard
+        players={state.players}
+        movablePieceIds={movablePieceIds}
+        onPieceClick={handlePieceClick}
+      />
+
+      {/* Game Controls */}
+      <div className="game-center">
+        {/* Turn Info */}
+        <div className="turn-info">
+          <div className="turn-left">
+            <div className="turn-label">Current Turn</div>
+            <div className="turn-name">{currentPlayer?.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+              ★ {currentPlayer?.stars} stars · {currentPlayer?.xp}xp
+            </div>
+          </div>
+          <Timer seconds={timer} total={currentPlayer?.turnTime || 15} />
+        </div>
+
+        {/* Dice */}
+        <div className="dice-section">
+          <Dice
+            value={state.lastRoll}
+            rolling={rolling}
+            onRoll={handleRoll}
+            canRoll={isMyTurn && !state.lastRoll && !rolling}
+          />
+          {state.lastRoll && (
+            <div style={{ textAlign: 'center' }}>
+              <div className="dice-result">{state.lastRoll}</div>
+              <div className="dice-label">
+                {state.lastRoll === 6 || state.lastRoll === 1 ? '🎉 Extra turn!' : 'Move a piece'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="action-row">
+          <button className="action-btn" onClick={nextTurn}>⏭ Skip</button>
+          <button className="action-btn danger" onClick={() => {
+            if (confirm('End game for everyone?')) {
+              setState(s => ({ ...s, screen: 'win', standings: s.players }));
+            }
+          }}>💀 End</button>
+        </div>
+
+        {/* Event Log */}
+        <div className="event-log">
+          <div className="log-title">⚡ Battle Log</div>
+          {state.log.map((entry, i) => (
+            <div key={i} className="log-entry">
+              <span className="log-icon">{entry.icon}</span>
+              {entry.text}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Combat Popup */}
+      <CombatPopup
+        visible={combatVisible}
+        targets={combatTargets}
+        onSelect={(t) => {
+          setCombatVisible(false);
+          setState(s => ({
+            ...s,
+            log: [{ icon: '⚔️', text: `Cleave hit ${t.playerName}'s ${t.role}! +${t.xp}xp` }, ...s.log.slice(0, 9)]
+          }));
+        }}
+        onClose={() => setCombatVisible(false)}
+      />
+
+      {/* Domain Flash */}
+      <div className={`domain-flash ${domainFlash ? 'show' : ''}`}>
+        <div className="domain-flash-icon">{domainFlash?.icon}</div>
+        <div className="domain-flash-text">{domainFlash?.text}</div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
