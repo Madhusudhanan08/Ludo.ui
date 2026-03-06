@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The System — Lore & Rules</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#08080e;--surface:#10101a;--surface2:#181828;--border:#252540;
+  --accent:#c9a227;--accent2:#e8c547;--text:#e8e0d0;--muted:#7070a0;
+  --red:#cc2222;--green:#22aa44;--blue:#2244cc;--yellow:#ccaa00;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── BACKGROUND TEXTURE ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 10%, #1a0a2a 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, #0a1a0a 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 10%, #1a0a08 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.page{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 0 40px;}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;
+  padding:48px 24px 32px;
+  position:relative;
+}
+
+.hero::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:10%;right:10%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+
+.hero-icon{
+  font-size:56px;
+  display:block;
+  margin-bottom:16px;
+  filter:drop-shadow(0 0 20px #c9a22760);
+  animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+}
+
+.hero-title{
+  font-family:'Cinzel Decorative',serif;
+  font-size:28px;
+  font-weight:900;
+  background:linear-gradient(135deg,#c9a227 0%,#e8c547 40%,#fff8e0 60%,#c9a227 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:4px;
+  line-height:1.2;
+  margin-bottom:8px;
+}
+
+.hero-sub{
+  font-family:'Cinzel',serif;
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:4px;
+  text-transform:uppercase;
+}
+
+/* ── SECTION ── */
+.section{
+  padding:28px 20px;
+  border-bottom:1px solid var(--border);
+}
+
+.section-title{
+  font-family:'Cinzel',serif;
+  font-size:14px;
+  color:var(--accent);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.section-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--accent)40,transparent);
+}
+
+/* ── LORE TEXT ── */
+.lore{
+  font-family:'Cinzel',serif;
+  font-size:13px;
+  line-height:1.9;
+  color:#c8bfa8;
+  font-style:italic;
+}
+
+.lore-highlight{
+  color:var(--accent2);
+  font-style:normal;
+  font-weight:600;
+}
+
+/* ── ROLE CARDS ── */
+.roles{display:flex;flex-direction:column;gap:12px;}
+
+.role-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  position:relative;
+  overflow:hidden;
+  transition:all .3s;
+}
+
+.role-card::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:3px;
+}
+
+.role-card.attacker::before{background:var(--red);}
+.role-card.tanker::before{background:var(--blue);}
+.role-card.crewmate::before{background:var(--green);}
+
+.role-icon{
+  font-size:28px;
+  flex-shrink:0;
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:var(--surface2);
+}
+
+.role-info{}
+.role-name{
+  font-family:'Cinzel',serif;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:2px;
+  margin-bottom:4px;
+}
+.role-card.attacker .role-name{color:var(--red);}
+.role-card.tanker   .role-name{color:var(--blue);}
+.role-card.crewmate .role-name{color:var(--green);}
+
+.role-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.role-power{
+  display:inline-block;
+  margin-top:6px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+  padding:3px 8px;
+  border-radius:20px;
+  text-transform:uppercase;
+}
+.role-card.attacker .role-power{background:#cc222222;color:var(--red);border:1px solid var(--red);}
+.role-card.tanker   .role-power{background:#2244cc22;color:var(--blue);border:1px solid var(--blue);}
+.role-card.crewmate .role-power{background:#22aa4422;color:var(--green);border:1px solid var(--green);}
+
+/* ── RULES ── */
+.rules{display:flex;flex-direction:column;gap:10px;}
+
+.rule{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.rule-num{
+  font-family:'Cinzel Decorative',serif;
+  font-size:16px;
+  font-weight:900;
+  color:var(--accent);
+  min-width:24px;
+  line-height:1;
+  margin-top:2px;
+}
+
+.rule-text{font-size:12px;color:var(--muted);line-height:1.7;}
+.rule-text b{color:var(--text);}
+
+/* ── DOMAIN TILES ── */
+.domain-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.domain-card{
+  background:var(--surface);
+  border:1px solid #c9a22740;
+  border-radius:10px;
+  padding:12px;
+  text-align:center;
+}
+
+.domain-emoji{font-size:24px;margin-bottom:6px;}
+.domain-name{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--accent);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.domain-effect{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* ── XP TABLE ── */
+.xp-table{display:flex;flex-direction:column;gap:8px;}
+.xp-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.xp-action{font-size:12px;color:var(--text);}
+.xp-val{
+  font-family:'Cinzel Decorative',serif;
+  font-size:13px;
+  color:var(--accent);
+  font-weight:700;
+}
+
+/* ── COMMANDS ── */
+.cmd-list{display:flex;flex-direction:column;gap:8px;}
+.cmd-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.cmd{
+  font-family:monospace;
+  font-size:12px;
+  color:var(--accent2);
+  background:var(--surface2);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+  min-width:110px;
+}
+.cmd-desc{font-size:12px;color:var(--muted);}
+
+/* ── BOTTOM CTA ── */
+.cta{
+  text-align:center;
+  padding:32px 20px;
+}
+.cta-btn{
+  display:inline-block;
+  padding:14px 32px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#c9a227,#e8c547);
+  color:#000;
+  font-family:'Cinzel',serif;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-decoration:none;
+  box-shadow:0 0 24px #c9a22760;
+  transition:all .2s;
+  cursor:pointer;
+  border:none;
+}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 0 32px #c9a22790;}
+
+.footer{
+  text-align:center;
+  padding:16px;
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-icon">⚔️</span>
+    <div class="hero-title">THE SYSTEM</div>
+    <div class="hero-sub">Dungeon Ludo RPG</div>
+  </div>
+
+  <!-- LORE -->
+  <div class="section">
+    <div class="section-title">📜 The Lore</div>
+    <p class="lore">
+      In a world governed by an ancient force known only as
+      <span class="lore-highlight">The System</span>, warriors are summoned
+      across the land and given a single command —
+      <span class="lore-highlight">capture the dungeon</span>.<br/><br/>
+
+      Each dungeon holds immense power. Whoever claims it earns the title of
+      <span class="lore-highlight">Dungeon Lord</span> and expands their territory
+      across the realm. But the path is treacherous — enemies walk the same
+      board, domains shift the rules of combat, and only the strongest party
+      reaches the center.<br/><br/>
+
+      You don't fight alone. Your party of four —
+      <span class="lore-highlight">Attacker, Tanker, and two Crewmates</span> —
+      must cross 57 tiles, survive ambushes, and outlast every rival clan.
+      The System judges all. Only one lord shall reign.
+    </p>
+  </div>
+
+  <!-- ROLES -->
+  <div class="section">
+    <div class="section-title">⚔️ The Roles</div>
+    <div class="roles">
+
+      <div class="role-card attacker">
+        <div class="role-icon">🗡️</div>
+        <div class="role-info">
+          <div class="role-name">Attacker</div>
+          <div class="role-desc">
+            The vanguard of your party. The Attacker moves fast and strikes hard.
+            When it lands on a Domain tile, it activates <b>Cleave</b> — the power
+            to eliminate one enemy piece from the board entirely.
+          </div>
+          <div class="role-power">⚡ Cleave — eliminate enemy piece</div>
+        </div>
+      </div>
+
+      <div class="role-card tanker">
+        <div class="role-icon">🛡️</div>
+        <div class="role-info">
+          <div class="role-name">Tanker</div>
+          <div class="role-desc">
+            The shield of your clan. The Tanker absorbs punishment so others
+            don't have to. On a Domain tile, it activates <b>Tank Up</b> —
+            making itself immune to Cleave for the next 3 turns.
+          </div>
+          <div class="role-power">🛡️ Tank Up — immune to Cleave (3 turns)</div>
+        </div>
+      </div>
+
+      <div class="role-card crewmate">
+        <div class="role-icon">🧑‍🤝‍🧑</div>
+        <div class="role-info">
+          <div class="role-name">Crewmate × 2</div>
+          <div class="role-desc">
+            The backbone of your operation. Two Crewmates support your advance.
+            They earn bonus XP for completing the board and turn Domain tiles
+            into <b>Safe Zones</b> for the whole party.
+          </div>
+          <div class="role-power">🔴 Domain becomes Safe Zone for party</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div class="section">
+    <div class="section-title">🎲 How To Play</div>
+    <div class="rules">
+
+      <div class="rule">
+        <div class="rule-num">1</div>
+        <div class="rule-text">
+          <b>Create a lobby</b> using <b>/play</b>. Share your room code with friends.
+          2 to 6 players can join using <b>/join CODE</b>.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">2</div>
+        <div class="rule-text">
+          Roll <b>1 or 6</b> to release a piece from home base.
+          Roll any number to move an active piece forward.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">3</div>
+        <div class="rule-text">
+          Roll <b>6</b> to get a <b>bonus turn</b>. Chain rolls to push deep
+          into enemy territory fast.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">4</div>
+        <div class="rule-text">
+          Land on an enemy piece to <b>send it back home</b>. Land on a
+          <b>★ Safe tile</b> to be protected from captures.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">5</div>
+        <div class="rule-text">
+          Land on a <b>◆ Domain tile</b> to activate your role's special power.
+          Use it wisely — Cleave can turn the game around instantly.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">6</div>
+        <div class="rule-text">
+          Get all 4 pieces to the <b>center dungeon</b> to win. The first clan
+          to finish captures the dungeon and earns the title of Dungeon Lord.
+        </div>
+      </div>
+
+      <div class="rule">
+        <div class="rule-num">7</div>
+        <div class="rule-text">
+          Each turn has a <b>timer</b>. If you don't roll in time, the dice
+          rolls automatically. Don't waste turns!
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DOMAIN TILES -->
+  <div class="section">
+    <div class="section-title">◆ Domain Tiles</div>
+    <div class="domain-grid">
+      <div class="domain-card">
+        <div class="domain-emoji">💥</div>
+        <div class="domain-name">Cleave</div>
+        <div class="domain-effect">Attacker eliminates one enemy piece. Send them back to start.</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-emoji">🛡️</div>
+        <div class="domain-name">Tank Up</div>
+        <div class="domain-effect">Tanker becomes immune to Cleave for 3 full turns.</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-emoji">🔴</div>
+        <div class="domain-name">Safe Zone</div>
+        <div class="domain-effect">Crewmate turns this tile into a Safe Zone for your whole party.</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-emoji">⭐</div>
+        <div class="domain-name">Star Tile</div>
+        <div class="domain-effect">Landing here grants +1 star. Stars boost your land expansion.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- XP & REWARDS -->
+  <div class="section">
+    <div class="section-title">✨ XP & Rewards</div>
+    <div class="xp-table">
+      <div class="xp-row"><span class="xp-action">🥇 First to finish</span><span class="xp-val">+50xp + Dungeon</span></div>
+      <div class="xp-row"><span class="xp-action">🥈 Second place</span><span class="xp-val">+50xp</span></div>
+      <div class="xp-row"><span class="xp-action">🥉 Third place</span><span class="xp-val">+30xp</span></div>
+      <div class="xp-row"><span class="xp-action">4️⃣ Fourth place</span><span class="xp-val">+25xp</span></div>
+      <div class="xp-row"><span class="xp-action">⚔️ Cleave kill</span><span class="xp-val">+20xp</span></div>
+      <div class="xp-row"><span class="xp-action">🔴 Domain capture</span><span class="xp-val">+10xp</span></div>
+      <div class="xp-row"><span class="xp-action">🏆 Level up (100xp)</span><span class="xp-val">+5s turn time</span></div>
+    </div>
+  </div>
+
+  <!-- COMMANDS -->
+  <div class="section">
+    <div class="section-title">💬 Commands</div>
+    <div class="cmd-list">
+      <div class="cmd-row"><span class="cmd">/start</span><span class="cmd-desc">Wake up The System</span></div>
+      <div class="cmd-row"><span class="cmd">/play</span><span class="cmd-desc">Create a dungeon lobby</span></div>
+      <div class="cmd-row"><span class="cmd">/join CODE</span><span class="cmd-desc">Join a lobby with room code</span></div>
+      <div class="cmd-row"><span class="cmd">/profile</span><span class="cmd-desc">View your stats & dungeons</span></div>
+      <div class="cmd-row"><span class="cmd">/leaderboard</span><span class="cmd-desc">Top dungeon lords</span></div>
+      <div class="cmd-row"><span class="cmd">/namedungeon</span><span class="cmd-desc">Name your captured dungeon</span></div>
+      <div class="cmd-row"><span class="cmd">/end</span><span class="cmd-desc">Surrender & end the game</span></div>
+      <div class="cmd-row"><span class="cmd">/about</span><span class="cmd-desc">View lore & rules</span></div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div style="font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:16px">READY TO CONQUER?</div>
+    <button class="cta-btn" onclick="window.Telegram?.WebApp?.close()">⚔️ ENTER THE DUNGEON</button>
+  </div>
+
+  <div class="footer">THE SYSTEM © 2026 — ALL DUNGEONS WILL FALL</div>
+
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if(tg){ tg.ready(); tg.expand(); tg.setHeaderColor('#08080e'); }
+</script>
+</body>
+</html>
